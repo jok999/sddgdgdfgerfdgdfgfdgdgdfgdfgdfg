@@ -1,4 +1,4 @@
-const Discord = require('discord.js')
+onst Discord = require('discord.js')
 const HypixelAPI = require('hypixel-api')
 const moment = require('moment')
  
@@ -9,33 +9,20 @@ if (args.length < 2) {
     process.exit(0)
 }
  
-const createRichEmbed = (title, description, color, image, footer, thumb) => {
-    let genEmbed = new Discord.RichEmbed({
-        title,
-        description
-    })
- 
-    genEmbed.setColor(color)
- 
-    if (image) genEmbed.setImage(image)
- 
-    if (footer) genEmbed.setFooter(footer)
- 
-    if (thumb) genEmbed.setThumbnail(thumb)
- 
-    return genEmbed
-}
- 
 const client = new Discord.Client()
 const HypixelClient = new HypixelAPI(args[1])
  
 client.on('ready', () => {
-    client.user.setStatus('online')
-    client.user.setGame('!hycord')
+    client.user.setPresence({
+    game: {
+        name: `Hypixel`, // Change what the bot is watching or playing.
+        type: 1 // 0 for playing, 1 for streaming, 2 for listening and 3 for watching.
+    }
+})
  
     console.log('The bot has been initialized!')
  
-    let installedGuilds = client.guilds.array().sort((a, b) => a.members.array().length > b.members.array().length ? 1 : -1)
+    let installedGuilds = client.guilds.array()
  
     console.log('This bot is available on ' + installedGuilds.length + ' guilds:')
  
@@ -54,18 +41,15 @@ client.on('message', async (message) => {
  
     if (!message.guild || !message.member) {
         if (message.channel.recipient) {
-            message.channel.send('To talk to me, get my attention in servers using the `!hycord` command!')
+            message.channel.send('To talk to me, get my attention in servers using the `!hypixel` command!')
         }
         return
     }
  
     const messageContent = message.content
  
-    if (messageContent.indexOf('!') !== 0) return
- 
-    if (!message.guild.me.hasPermission('ADMINISTRATOR')) {
-        console.log('Still need administrator permission in ' + message.guild.name)
-        await message.channel.send(createRichEmbed('Error', 'I need the **Administrator** permission to function!', '#E74C3C'))
+    if (messageContent.indexOf('!') !== 0) {
+        return
     }
  
     const commandComponents = messageContent.split('!')[1].split(' ')
@@ -73,12 +57,12 @@ client.on('message', async (message) => {
     const commandArgs = (commandComponents.length > 1 ? commandComponents.slice(1) : [])
  
     switch (baseCommand) {
-        case 'hycord':
+        case 'hypixel':
             let helpRich = new Discord.RichEmbed()
  
-            helpRich.setTitle('Hycord Bot Information')
+            helpRich.setTitle('Help')
  
-            helpRich.setDescription('Hycord was created by [ethanent](https://ethanent.me)! Using the bot is simple!')
+            helpRich.setDescription('You can execute the following commands')
  
             helpRich.setColor('#FFE11A')
  
@@ -86,14 +70,8 @@ client.on('message', async (message) => {
  
             helpRich.addField('!guild <name>', 'Displays statistics for a Hypixel guild.')
  
-            helpRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
  
             message.channel.send(helpRich)
-            break
-        case 'eval':
-            if (message.author.id === '249963809119272960') {
-                await message.channel.send('`' + eval(message.content.substring(6)) + '`')
-            }
             break
         case 'player':
             if (commandArgs.length > 0) {
@@ -114,9 +92,9 @@ client.on('message', async (message) => {
                 let playerRich = new Discord.RichEmbed()
  
                 playerRich.setThumbnail('https://crafatar.com/avatars/' + (hypixelPlayer.uuid || '') + '?size=100')
+                playerRich.setThumbnail('https://crafatar.com/avatars/' + (hypixelPlayer.uuid || '') + '?size=100')
                 playerRich.setTitle('Hypixel Player: ' + hypixelPlayer.displayname)
                 playerRich.setURL('https://hypixel.net/player/' + hypixelPlayer.displayname + '/')
-                playerRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
                 playerRich.setColor('#30DB09')
  
                 playerRich.addField('Rank', (hypixelPlayer.rank || hypixelPlayer.packageRank || hypixelPlayer.newPackageRank || 'None').toString().replace(/_/g, ' '), true)
@@ -134,7 +112,7 @@ client.on('message', async (message) => {
                     playerGuild = (await HypixelClient.getGuild(playerGuildID)).guild
                 }
  
-                playerRich.addField('Guild', (playerGuild ? '[' + playerGuild.name + ' [' + playerGuild.tag + ']' + '](https://hypixel.net/guilds/' + playerGuild._id + '/)' : 'None'))
+                playerRich.addField('Guild', (playerGuild ? '[' + playerGuild.name + ' | Guild Tag [' + playerGuild.tag + ']' + '](https://hypixel.net/guilds/' + playerGuild._id + '/)' : 'None'))
  
                 message.channel.stopTyping()
  
@@ -159,8 +137,7 @@ client.on('message', async (message) => {
                 let guildRich = new Discord.RichEmbed()
  
                 guildRich.setThumbnail('https://hypixel.net/data/guild_banners/100x200/' + guildData._id + '.png')
-                guildRich.setTitle('Hypixel Guild: ' + guildData.name + ' [' + guildData.tag + ']')
-                guildRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
+                guildRich.setTitle('Hypixel Guild: ' + guildData.name + ' | Guild Tag [' + guildData.tag + ']')
                 guildRich.setColor('#2DC7A1')
                 guildRich.setURL('https://hypixel.net/guilds/' + guildData._id + '/')
  
@@ -171,11 +148,22 @@ client.on('message', async (message) => {
                 message.channel.send(guildRich)
             }
             else {
-                message.channel.send('Usage: `!guild <name>`')
+                message.channel.send('Usage: `!player <name>`')
             }
             break
     }
 })
+ 
+ 
+client.on('message', message => {
+    if(message.author.bot) return;
+    else if (message.member.hasPermission("MANAGE_MESSAGES")) return;
+    var re =  /[-a-zA-Z0-9@:%_\+.~#?&  =]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&  =]*)?/gi.exec(message.cleanContent);
+    if(re != null){
+        message.delete().then(message => {
+            message.author.send('Sorry, you cannot include links in your messages');
+        });
+    }
  
 
 

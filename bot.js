@@ -8,6 +8,7 @@ client.on('ready', () => {
  
 const cool = [];
 const fs = require('fs')
+const hero  = require('hero ')
 const moment = require('moment')
 const ms = require('ms')
 client.on('message',async message => {

@@ -15,8 +15,8 @@ client.on('message',async message => {
   if(message.channel.type === 'dm') return;
  
   const args = message.content.split(' ');
-  const credits = require('./src/credits.json');
-  const path = './src/credits.json';
+  const credits = require('./credits.json');
+  const path = './credits.json';
   const mention = message.mentions.users.first() || hero.users.get(args[1]) || message.author;
   const mentionn = message.mentions.users.first() || hero.users.get(args[1]);
   const author = message.author.id;

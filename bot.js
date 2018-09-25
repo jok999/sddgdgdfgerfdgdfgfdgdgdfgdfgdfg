@@ -9,20 +9,33 @@ if (args.length < 2) {
     process.exit(0)
 }
  
+const createRichEmbed = (title, description, color, image, footer, thumb) => {
+    let genEmbed = new Discord.RichEmbed({
+        title,
+        description
+    })
+ 
+    genEmbed.setColor(color)
+ 
+    if (image) genEmbed.setImage(image)
+ 
+    if (footer) genEmbed.setFooter(footer)
+ 
+    if (thumb) genEmbed.setThumbnail(thumb)
+ 
+    return genEmbed
+}
+ 
 const client = new Discord.Client()
 const HypixelClient = new HypixelAPI(args[1])
  
 client.on('ready', () => {
-    client.user.setPresence({
-    game: {
-        name: `Hypixel`, // Change what the bot is watching or playing.
-        type: 1 // 0 for playing, 1 for streaming, 2 for listening and 3 for watching.
-    }
-})
+    client.user.setStatus('online')
+    client.user.setGame('!hycord')
  
     console.log('The bot has been initialized!')
  
-    let installedGuilds = client.guilds.array()
+    let installedGuilds = client.guilds.array().sort((a, b) => a.members.array().length > b.members.array().length ? 1 : -1)
  
     console.log('This bot is available on ' + installedGuilds.length + ' guilds:')
  
@@ -41,15 +54,18 @@ client.on('message', async (message) => {
  
     if (!message.guild || !message.member) {
         if (message.channel.recipient) {
-            message.channel.send('To talk to me, get my attention in servers using the `!hypixel` command!')
+            message.channel.send('To talk to me, get my attention in servers using the `!hycord` command!')
         }
         return
     }
  
     const messageContent = message.content
  
-    if (messageContent.indexOf('!') !== 0) {
-        return
+    if (messageContent.indexOf('!') !== 0) return
+ 
+    if (!message.guild.me.hasPermission('ADMINISTRATOR')) {
+        console.log('Still need administrator permission in ' + message.guild.name)
+        await message.channel.send(createRichEmbed('Error', 'I need the **Administrator** permission to function!', '#E74C3C'))
     }
  
     const commandComponents = messageContent.split('!')[1].split(' ')
@@ -57,12 +73,12 @@ client.on('message', async (message) => {
     const commandArgs = (commandComponents.length > 1 ? commandComponents.slice(1) : [])
  
     switch (baseCommand) {
-        case 'hypixel':
+        case 'hycord':
             let helpRich = new Discord.RichEmbed()
  
-            helpRich.setTitle('Help')
+            helpRich.setTitle('Hycord Bot Information')
  
-            helpRich.setDescription('You can execute the following commands')
+            helpRich.setDescription('Hycord was created by [ethanent](https://ethanent.me)! Using the bot is simple!')
  
             helpRich.setColor('#FFE11A')
  
@@ -70,8 +86,14 @@ client.on('message', async (message) => {
  
             helpRich.addField('!guild <name>', 'Displays statistics for a Hypixel guild.')
  
+            helpRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
  
             message.channel.send(helpRich)
+            break
+        case 'eval':
+            if (message.author.id === '249963809119272960') {
+                await message.channel.send('`' + eval(message.content.substring(6)) + '`')
+            }
             break
         case 'player':
             if (commandArgs.length > 0) {
@@ -92,9 +114,9 @@ client.on('message', async (message) => {
                 let playerRich = new Discord.RichEmbed()
  
                 playerRich.setThumbnail('https://crafatar.com/avatars/' + (hypixelPlayer.uuid || '') + '?size=100')
-                playerRich.setThumbnail('https://crafatar.com/avatars/' + (hypixelPlayer.uuid || '') + '?size=100')
                 playerRich.setTitle('Hypixel Player: ' + hypixelPlayer.displayname)
                 playerRich.setURL('https://hypixel.net/player/' + hypixelPlayer.displayname + '/')
+                playerRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
                 playerRich.setColor('#30DB09')
  
                 playerRich.addField('Rank', (hypixelPlayer.rank || hypixelPlayer.packageRank || hypixelPlayer.newPackageRank || 'None').toString().replace(/_/g, ' '), true)
@@ -112,7 +134,7 @@ client.on('message', async (message) => {
                     playerGuild = (await HypixelClient.getGuild(playerGuildID)).guild
                 }
  
-                playerRich.addField('Guild', (playerGuild ? '[' + playerGuild.name + ' | Guild Tag [' + playerGuild.tag + ']' + '](https://hypixel.net/guilds/' + playerGuild._id + '/)' : 'None'))
+                playerRich.addField('Guild', (playerGuild ? '[' + playerGuild.name + ' [' + playerGuild.tag + ']' + '](https://hypixel.net/guilds/' + playerGuild._id + '/)' : 'None'))
  
                 message.channel.stopTyping()
  
@@ -137,7 +159,8 @@ client.on('message', async (message) => {
                 let guildRich = new Discord.RichEmbed()
  
                 guildRich.setThumbnail('https://hypixel.net/data/guild_banners/100x200/' + guildData._id + '.png')
-                guildRich.setTitle('Hypixel Guild: ' + guildData.name + ' | Guild Tag [' + guildData.tag + ']')
+                guildRich.setTitle('Hypixel Guild: ' + guildData.name + ' [' + guildData.tag + ']')
+                guildRich.setFooter('Hycord Bot | Created by ethanent', 'https://i.imgur.com/hFbNBr5.jpg')
                 guildRich.setColor('#2DC7A1')
                 guildRich.setURL('https://hypixel.net/guilds/' + guildData._id + '/')
  
@@ -148,208 +171,12 @@ client.on('message', async (message) => {
                 message.channel.send(guildRich)
             }
             else {
-                message.channel.send('Usage: `!player <name>`')
+                message.channel.send('Usage: `!guild <name>`')
             }
             break
     }
 })
  
- 
-client.on('message', message => {
-    if(message.author.bot) return;
-    else if (message.member.hasPermission("MANAGE_MESSAGES")) return;
-    var re =  /[-a-zA-Z0-9@:%_\+.~#?&  =]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&  =]*)?/gi.exec(message.cleanContent);
-    if(re != null){
-        message.delete().then(message => {
-            message.author.send('Sorry, you cannot include links in your messages');
-        });
-    }
-});
- 
- 
- 
- 
-client.on('message', msg => {
-  if (msg.content === '!help') {
-    msg.reply('This command is currently unavailable!');
- 
-  }
- 
-});
- 
-client.on('message', msg => {
-  if (msg.content === '!clear') {
-  const embed = new Discord.RichEmbed()
-  .setTitle("Hypixel CLEAR")
-  .setAuthor("Created by Panayiotis", "https://cdn.discordapp.com/avatars/405783458619850782/d0d496048d2718a939e8bb82f4a8618c.png?size=128")
-  .addField("!clear 10", "Clears 10 Messages")
-  .addField("!clear 20", "Clears 20 Messages")
-  .addField("!clear 50", "Clears 50 Messages")
-  .addField("!clear 100", "Clears 100 Messages")
-  .setColor(0xffdb4d)
-  .setThumbnail("http://i.imgur.com/rtCnCW3.png")
-    msg.channel.send({embed})
-  }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "!clear 10") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    message.channel.bulkDelete(10);
-                    const embed = new Discord.RichEmbed()
-                    .addField("Messages deleted", "I've cleared 10 Messages!")
-                    .setColor(0xffdb4d)
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "!clear 20") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    message.channel.bulkDelete(20);
-                    const embed = new Discord.RichEmbed()
-                    .addField("Messages deleted", "I've cleared 20 Messages!")
-                    .setColor(0xffdb4d)
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "!clear 50") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    message.channel.bulkDelete(50);
-                    const embed = new Discord.RichEmbed()
-                    .addField("Messages deleted", "I've cleared 50 Messages!")
-                    .setColor(0xffdb4d)
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "!clear 100") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    message.channel.bulkDelete(100);
-                    const embed = new Discord.RichEmbed()
-                    .addField("Messages deleted", "I've cleared 100 Messages!")
-                    .setColor(0xffdb4d)
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
- client.on("message", (message) => {
-      if (message.content.startsWith("!kick")) {
-          if (!message.member.hasPermission("KICK_MEMBERS")) return message.channel.send(":x: Access denied!")
-          var member= message.mentions.members.first();
-          member.kick().then((member) => {
-              message.channel.send(":wave: " + member.displayName + " has been successfully kicked :thumbsup: ");
-          }).catch(() => {
-              message.channel.send("Sorry I can't kick this person!");
-          });
- 
-      }
- 
-  });
- 
- client.on("message", (message) => {
-      if (message.content.startsWith("!ban")) {
-          if (!message.member.hasPermission("BAN_MEMBERS")) return message.channel.send(":x: Access denied!")
-          var member= message.mentions.members.first();
-          member.ban().then((member) => {
-              message.channel.send(":fire: " + member.displayName + " has been successfully banned :thumbsup:");
-          }).catch(() => {
-              message.channel.send("Sorry I can't ban this person!");
-          });
- 
-      }
- 
-  });
- 
-client.on('message', msg => {
-  if (msg.content === '!cool playlist') {
-  const embed = new Discord.RichEmbed()
-  .setTitle("Hypixel MUSIC PLAYLIST")
-  .addField("Duration", "00:31:38")
-  .addField("\u200B", "\u200B")
-  .addField("Channel", "Uploaded by ChillNation")
-  .setColor(0xffdb4d)
-  .setThumbnail("https://i.ytimg.com/vi/_YltzRfb-Yo/hqdefault.jpg?sqp=-oaymwEZCNACELwBSFXyq4qpAwsIARUAAIhCGAFwAQ==&rs=AOn4CLCnTz7KgHmiDVjj3-FAgIACLcdWVg")
-  .setFooter("Listen to this playlist here: https://www.youtube.com/watch?v=_YltzRfb-Yo")
-    msg.channel.send({embed})
-  }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "!clear ultra") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    message.channel.bulkDelete(list);
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "avatar update") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    client.user.setAvatar('https://hypixel.net/data/avatars/l/227/227455.jpg?1524596502');
-                    const embed = new Discord.RichEmbed()
-                    .addField("UPDATE", "My avatar has been updated!")
-                    .setColor(0xffdb4d)
-                    .setThumbnail("https://hypixel.net/data/avatars/l/227/227455.jpg?1524596502")
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('message', function(message) {
-    if (message.content == "name update") {
-        if (message.member.hasPermission("MANAGE_MESSAGES")) {
-            message.channel.fetchMessages()
-               .then(function(list){
-                    client.user.setUsername('NotWinner');
-                    const embed = new Discord.RichEmbed()
-                    .addField("Name updated")
-                    .setColor(0xffdb4d)
-                    message.channel.send({embed})
-                }, function(err){message.channel.send("ERROR: ERROR CLEARING CHANNEL.")})
-        }
-    }
- 
-});
- 
-client.on('guildMemberAdd', member => {
-       member.guild.defaultChannel.send(`Welcome to the server, ${member}!`);
-       console.log(`${member.user.username} has joined`);
-});
-
 
 
 

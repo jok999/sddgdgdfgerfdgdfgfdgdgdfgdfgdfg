@@ -7,6 +7,7 @@ client.on('ready', () => {
 
  
 hero.on('guildMemberAdd',async member => {
+  const hero = require('hero');
   const Canvas = require('canvas');
   const jimp = require('jimp');
   const w = ['./welcome_4.png'];

@@ -6,102 +6,63 @@ client.on('ready', () => {
 });
 
  
-const cool = [];
-const fs = require('fs')
-const moment = require('moment')
-const ms = require('ms')
-client.on('message',async message => {
-  if(message.author.bot) return;
-  if(message.channel.type === 'dm') return;
+hero.on('guildMemberAdd',async member => {
+  const Canvas = require('canvas');
+  const jimp = require('jimp');
+  const w = ['./welcome_4.png'];
+        let Image = Canvas.Image,
+            canvas = new Canvas(800, 300),
+            ctx = canvas.getContext('2d');
+        ctx.patternQuality = 'bilinear';
+        ctx.filter = 'bilinear';
+        ctx.antialias = 'subpixel';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowOffsetY = 2;
+        ctx.shadowBlur = 2;
+        ctx.stroke();
+        ctx.beginPath();
  
-  const args = message.content.split(' ');
-  const credits = require('./credits.json');
-  const path = './credits.json';
-  const mention = message.mentions.users.first() || hero.users.get(args[1]) || message.author;
-  const mentionn = message.mentions.users.first() || hero.users.get(args[1]);
-  const author = message.author.id;
-  const balance = args[2];
-  const daily = Math.floor(Math.random() * 350) + 10;
+        fs.readFile(`${w[Math.floor(Math.random() * w.length)]}`, function (err, Background) {
+            if (err) return console.log(err);
+            let BG = Canvas.Image;
+            let ground = new Image;
+            ground.src = Background;
+            ctx.drawImage(ground, 0, 0, 800, 300);
  
-  if(!credits[author]) credits[author] = {credits: 50};
-  if(!credits[mention.id]) credits[mention.id] = {credits: 50};
-  fs.writeFile(path, JSON.stringify(credits, null, 5), function(err) {if(err) console.log(err)});
+})
  
- var prefix = "$";
-  if(message.content.startsWith(prefix + "credit")) {
-  if(args[0] !== `${prefix}credit` && args[0] !== `${prefix}credits`) return;
+                let url = member.user.displayAvatarURL.endsWith(".webp") ? member.user.displayAvatarURL.slice(5, -20) + ".png" : member.user.displayAvatarURL;
+                jimp.read(url, (err, ava) => {
+                    if (err) return console.log(err);
+                    ava.getBuffer(jimp.MIME_PNG, (err, buf) => {
+                 if (err) return console.log(err);
  
-  if(args[2]) {
-    if(isNaN(args[2])) return message.channel.send('**:heavy_multiplication_x:| هذه الخانة يجب ان تتكون من ارقام وليس احرف.**');
-    if(mention.bot) return message.channel.send(`**:heavy_multiplication_x:| ${message.content.split(' ')[1]} لم يتم العثور على**`);
-    if(mention.id === message.author.id) return message.channel.send('**:heavy_multiplication_x:| لا يمكنك تحويل كردت لنفسك**');
-    if(credits[author].credits < balance) return message.channel.send('**:heavy_multiplication_x:| أنت لا تملك هذا القدر من الكردت**');
-    var one = Math.floor(Math.random() * 9) + 1;
-    var two = Math.floor(Math.random() * 9) + 1;
-    var three = Math.floor(Math.random() * 9) + 1;
-    var four = Math.floor(Math.random() * 9) + 1;
+          ctx.font = '36px Arial';
+          ctx.fontSize = '72px';
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(member.user.username, 545, 177);
+         
+          ctx.font = '16px Arial Bold';
+          ctx.fontSize = '72px';
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText(`${member.guild.memberCount} Members`, 580, 200);
+         
+          let Avatar = Canvas.Image;
+          let ava = new Avatar;
+          ava.src = buf;
+          ctx.beginPath();
+          ctx.arc(169.5, 148, 126.9, -100, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(ava, 36, 21, 260, 260);
+           
+          const c = hero.channels.get("338637464878972929");
+          c.sendFile(canvas.toBuffer());
  
-    var number = `${one}${two}${three}${four}`;
-   
-    message.channel.send(`**:heavy_dollar_sign:| \`${number}\`, أكتب الرقم للأستمرار**`).then(m => {
-      message.channel.awaitMessages(m => m.author.id === message.author.id, {max: 1, time: 10000}).then(c => {
-        if(c.first().content === number) {
-          m.delete();
-          message.channel.send(`**:atm:| ${message.author.username}, قام بتحويل \`${balance}\` لـ ${mention}**`);
-          credits[author].credits += (-balance);
-          credits[mention.id].credits += (+balance);
-          fs.writeFile(path, JSON.stringify(credits, null, 5), function(err) {if(err) console.log(err)});
-        } else if(c.first().content !== number) {
-          m.delete();
-          message.channel.send(`** :money_with_wings: | تم الغاء الإرسال**`);
-        }
-      });
-    });
-  }
-  if(!args[2]) {
-    if(mention.bot) return message.channel.send(`**:heavy_multiplication_x:| ${message.content.split(' ')[1]} لم يتم العثور على**`);
-    message.channel.send(`**:credit_card: | ${mention.username}, معك من الكردت **${credits[mention.id].credits}`);
-  }
- 
-  }
-  if(message.content.startsWith(prefix + "daily")) {
-    if(cool.includes(message.author.id)) return message.channel.send(`**:heavy_dollar_sign: | \`${moment().startOf('day').locale('ar-eg').fromNow().replace('منذ', 'بعد')}\` , يجب عليك انتظار  يوم لأخذ المبلغ مرة اخرى**`);
-    if(mentionn) {
-      var one = Math.floor(Math.random() * 9) + 1;
-      var two = Math.floor(Math.random() * 9) + 1;
-      var three = Math.floor(Math.random() * 9) + 1;
-      var four = Math.floor(Math.random() * 9) + 1;
- 
-      var number = `${one}${two}${three}${four}`;
- 
-      message.channel.send(`**:atm: | \`${number}\`, قم بكتابة الرقم للأستمرار**`).then(async m => {
-        message.channel.awaitMessages(msg => msg.author.id === message.author.id, {max: 1, time: 20000, errors: ['time']}).then(collected => {
-          if(collected.first().content === number) {
-            m.delete();
-            collected.first().delete();
-            credits[mentionn.id].credits += (+daily);
-            fs.writeFile(path, JSON.stringify(credits, null, 5), function(err) {if(err) console.log(err)});
- 
-          message.channel.send(`**:atm: | \`${daily}\`, تم تسليم المبلغ**`);  
-          }
-          if(collected.first().content !== number) {
-            return m.delete();
-          }
-        });
-      });
-    } else if(!mentionn) {
-      credits[author].credits += (+daily);
-      fs.writeFile(path, JSON.stringify(credits, null, 5), function(err) {if(err) console.log(err)});
- 
-      message.channel.send(`**:atm: | \`${daily}\`, تم اعطائك المبلغ**`);
-    }
-    cool.unshift(message.author.id);
- 
-    setTimeout(() => {
-      cool.shift(message.author.id);
-      message.author.send("**:atm: | \`Daily\`, يمكنك الحصول على الكردت المجانية الان**").catch();
-    }, ms("1d"));
-  }
+});
+});
 });
 
 

@@ -56,7 +56,6 @@ client.on('message',async message => {
   let embed = new Discord.RichEmbed()
   .setAuthor('الكلانات', message.author.avatarURL)
   .setDescription(`- \`${prefix}clan\`: نظام الكلانات هو نظام شبه مسلي ينمي التفاعل ويمكنك التحكم بالكلان تبعك بشكل كامل
-  - \`${prefix}clan info\`: لأظهار رسالة الأوامر ( هذه الرسالة ) ء
   - \`${prefix}clan create\`: لأنشاء كلان بالأسم الذي تريده
   - \`${prefix}clan invite\`: لدعوة شخص ما للكلان تبعك
   - \`${prefix}clan join\`: للتقديم على دخول الكلان الذي تريده

@@ -48,7 +48,7 @@ client.on('message',async message => {
     };
  
   }
-  var prefix = "%";
+  var prefix = "#$%^&";
   if(message.content.startsWith(prefix + "fsdfsgsd")) {
     if(message.content.split(' ')[0] !== `${prefix}clan`) return;
  
